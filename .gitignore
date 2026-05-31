@@ -28,3 +28,9 @@ firebase_options.dart
 .env
 *.keystore
 *.jks
+
+# Node.js build and dependencies directories
+node_modules/
+dist/
+.eslintcache
+

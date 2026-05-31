@@ -1,10 +1,8 @@
-import React from 'react';
 import { 
   Users, 
   MapPin, 
   IndianRupee, 
   TrendingUp, 
-  CheckCircle, 
   ShoppingBag,
   Activity
 } from 'lucide-react';

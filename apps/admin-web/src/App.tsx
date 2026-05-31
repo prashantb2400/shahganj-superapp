@@ -1,15 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   ShieldAlert, 
   LayoutDashboard, 
   UserCheck, 
-  MapPin, 
   Settings, 
   BellRing, 
-  IndianRupee, 
-  TrendingUp, 
   LogOut, 
-  CheckCircle,
   Database
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
