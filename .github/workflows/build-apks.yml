@@ -1,0 +1,65 @@
+name: Cloud APK Release Builder
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger build on release version tags e.g. v1.0.0
+
+jobs:
+  build_apks:
+    name: Build Signed Android APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JRE/JDK (Android Build)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Flutter SDK Environment
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Melos Global Package
+        run: dart pub global activate melos 6.0.0
+
+      - name: Add Path variables
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Melos Workspace Bootstrap
+        run: melos bootstrap
+
+      - name: Generate Freezed & Serialized Files (build_runner)
+        run: melos run build_all
+
+      - name: Compile Signed Customer APK (online.shahganj.customer)
+        run: |
+          cd apps/customer
+          flutter build apk --release --target-platform android-arm,android-arm64 --split-per-abi
+
+      - name: Compile Signed Merchant APK (online.shahganj.merchant)
+        run: |
+          cd apps/merchant
+          flutter build apk --release --target-platform android-arm,android-arm64 --split-per-abi
+
+      - name: Upload Customer Build Artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-release-apks
+          path: apps/customer/build/app/outputs/flutter-apk/*.apk
+          retention-days: 7
+
+      - name: Upload Merchant Build Artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: merchant-release-apks
+          path: apps/merchant/build/app/outputs/flutter-apk/*.apk
+          retention-days: 7
