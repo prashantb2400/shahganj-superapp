@@ -1,0 +1,11 @@
+name: shared_widgets
+description: Shared UI widgets, Nominatim maps selectors, skeleton shimmers, and doc upload fields for the Shahganj.online apps.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter

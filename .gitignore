@@ -1,0 +1,30 @@
+# Windows/macOS/Linux system files
+.DS_Store
+Thumbs.db
+*.log
+
+# Flutter/Dart build files
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.metadata
+
+# IDE specific files
+.idea/
+*.iml
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Generated code files (freezed & json_serializable)
+*.freezed.dart
+*.g.dart
+
+# Sensitive credentials files
+google-services.json
+firebase_options.dart
+.env
+*.keystore
+*.jks

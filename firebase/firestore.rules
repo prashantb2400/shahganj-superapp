@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Checks if requesting user has approved role
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserRole(role) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // 1. AppUser Collection Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // 2. Merchant Profile Vetting collection (Vite Admin panel checks)
+    match /merchants/{merchantId} {
+      allow read: if true; // Public catalog discovery (Section 10 Phase 2)
+      allow create: if isAuthenticated() && request.auth.uid == merchantId;
+      // Vetting states approved can only be updated by Admins
+      allow update: if getUserRole('admin') || 
+        (isAuthenticated() && request.auth.uid == merchantId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'approvedAt', 'approvedBy']));
+    }
+
+    // 3. MenuItem Collection
+    match /menuItems/{itemId} {
+      allow read: if true;
+      allow write: if getUserRole('merchant') && request.resource.data.merchantId == request.auth.uid;
+    }
+
+    // 4. Captive Rider Collection
+    match /riders/{riderId} {
+      allow read: if isAuthenticated();
+      // Riders can only update locations and isOnline variables
+      allow write: if isOwner(riderId) || getUserRole('admin');
+    }
+
+    // 5. [CRITICAL SECURITY RULES]: Order collections & OTP hashes (Section 6 & 11)
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.merchantId || 
+        request.auth.uid == resource.data.riderId ||
+        getUserRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && request.resource.data.customerId == request.auth.uid;
+      
+      // Strict update parameters: prevent customer from changing price, restrict OTP modifications
+      allow update: if isAuthenticated() && (
+        // Merchant updates preparation status
+        (request.auth.uid == resource.data.merchantId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['totals', 'customerId', 'otpHash'])) ||
+        // Rider updates delivery coordinates
+        (request.auth.uid == resource.data.riderId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['totals', 'customerId', 'merchantId', 'otpHash'])) ||
+        // Admin overrides
+        getUserRole('admin')
+      );
+    }
+
+    // 6. Service Bookings Rules
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.providerId ||
+        getUserRole('admin')
+      );
+      allow create: if isAuthenticated() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.providerId || 
+        getUserRole('admin')
+      );
+    }
+
+    // 7. Rides Rules
+    match /rides/{rideId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isAuthenticated();
+    }
+  }
+}

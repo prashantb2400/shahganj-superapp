@@ -1,0 +1,10 @@
+name: shahganj_workspace
+description: Shahganj.online Multi-Package Monorepo Workspace Root
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dev_dependencies:
+  melos: ^6.0.0
