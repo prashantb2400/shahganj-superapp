@@ -7,12 +7,12 @@ import {
   BellRing, 
   LogOut, 
   Database,
-  Lock,
-  Mail,
   CheckCircle,
   XCircle
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
+import { auth, googleProvider } from './firebase';
+import { signInWithPopup, signOut, User } from 'firebase/auth';
 
 interface VettingItem {
   id: string;
@@ -23,10 +23,8 @@ interface VettingItem {
 }
 
 export default function App() {
-  // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Auth state using Firebase User object
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authError, setAuthError] = useState('');
 
   // App state
@@ -59,14 +57,38 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email === 'ops@shahganj.online' && password === 'admin') {
-      setIsLoggedIn(true);
-      setAuthError('');
-      showToast('🎉 Super Admin authentication successful. Console unlocked!');
-    } else {
-      setAuthError('Invalid credentials! Access denied.');
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const loggedUser = result.user;
+      
+      // Restrict access to designated administrative emails
+      const isAllowed = 
+        loggedUser.email?.endsWith('@shahganj.online') || 
+        loggedUser.email === 'tradexmeme@gmail.com' ||
+        loggedUser.email === 'prashantb2400@gmail.com' ||
+        loggedUser.email === 'tradxmeme@gmail.com';
+
+      if (isAllowed) {
+        setCurrentUser(loggedUser);
+        setAuthError('');
+        showToast(`🎉 Authentication successful! Secure console unlocked for ${loggedUser.displayName}.`);
+      } else {
+        await signOut(auth);
+        setAuthError(`Access Denied! ${loggedUser.email} is not a whitelisted operations account.`);
+      }
+    } catch (err: any) {
+      setAuthError(`Sign-in cancelled or failed: ${err.message}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      showToast('🔌 Operator console securely locked.');
+    } catch (err: any) {
+      showToast(`Error signing out: ${err.message}`, 'info');
     }
   };
 
@@ -99,8 +121,8 @@ export default function App() {
     { id: 'settings', label: 'Financial Setup', icon: Settings },
   ] as const;
 
-  // Render Login Gate (Rule 18 spec - skipped Google auth for admin safety)
-  if (!isLoggedIn) {
+  // Render Login Gate (Only Google Sign-In)
+  if (!currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#070b19]">
         <div className="absolute inset-0 bg-[#0c1328] opacity-30 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px]" />
@@ -111,7 +133,7 @@ export default function App() {
               <ShieldAlert className="w-10 h-10" />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wider">SHAHGANJ OPERATIONS</h1>
-            <p className="text-xs text-slate-400 font-semibold tracking-widest uppercase">Security Clearance Required</p>
+            <p className="text-xs text-slate-400 font-semibold tracking-widest uppercase">Super Admin Access Control</p>
           </div>
 
           {authError && (
@@ -121,46 +143,37 @@ export default function App() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Admin Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
-                <input 
-                  type="email" 
-                  placeholder="ops@shahganj.online" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-700 text-white rounded-xl text-sm focus:border-violet-500 outline-none transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Security Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-700 text-white rounded-xl text-sm focus:border-violet-500 outline-none transition-all"
-                  required
-                />
-              </div>
-            </div>
+          <div className="space-y-4">
+            <p className="text-slate-400 text-xs text-center leading-relaxed">
+              To proceed, authenticate using a whitelisted Google Account matching the `@shahganj.online` domain or authorized super admin profiles.
+            </p>
 
             <button 
-              type="submit" 
-              className="w-full py-3.5 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-violet-600/20"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 py-3.5 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-lg shadow-white/5"
             >
-              Sign In to Operator Panel
+              {/* Google G logo */}
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.99 1 12 1 7.24 1 3.2 3.74 1.15 7.74l3.87 3a7.02 7.02 0 0 1 6.98-5.7z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46a5.52 5.52 0 0 1-2.4 3.62l3.73 2.89c2.18-2.01 3.7-4.97 3.7-8.66z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.02 14.74A6.97 6.97 0 0 1 4.6 12c0-.98.17-1.92.47-2.8l-3.87-3A11.96 11.96 0 0 0 0 12c0 2.22.61 4.29 1.65 6.08l3.37-3.34z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.89c-1.03.69-2.35 1.1-4.23 1.1-3.37 0-6.22-2.28-7.24-5.36L.9 16.29C2.9 20.26 6.94 23 12 23z"
+                />
+              </svg>
+              <span>Sign In with Google Account</span>
             </button>
-          </form>
-
-          <p className="text-center text-[10px] text-slate-500 font-mono">ops@shahganj.online • pass: admin</p>
+          </div>
         </div>
       </div>
     );
@@ -219,16 +232,20 @@ export default function App() {
         {/* User Card */}
         <div className="border-t border-slate-800 pt-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center font-bold text-violet-400 text-sm">
-              SA
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold text-white">Super Admin</p>
-              <p className="text-xs text-slate-500">ops@shahganj.online</p>
+            {currentUser.photoURL ? (
+              <img src={currentUser.photoURL} alt="Avatar" className="w-10 h-10 rounded-full border border-violet-500/20" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center font-bold text-violet-400 text-sm">
+                {currentUser.displayName?.substring(0, 2).toUpperCase() || 'SA'}
+              </div>
+            )}
+            <div className="leading-tight max-w-[110px]">
+              <p className="text-sm font-semibold text-white truncate">{currentUser.displayName || 'Super Admin'}</p>
+              <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
             </div>
           </div>
           <button 
-            onClick={() => setIsLoggedIn(false)}
+            onClick={handleLogout}
             className="p-2 text-slate-500 hover:text-red-400 transition-colors"
           >
             <LogOut className="w-4.5 h-4.5" />
