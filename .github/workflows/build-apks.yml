@@ -27,11 +27,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate Android Integration Templates
-        run: |
-          rm -rf apps/customer/android apps/merchant/android
-          cd apps/customer && flutter create . --platforms=android --org=online.shahganj
-          cd ../merchant && flutter create . --platforms=android --org=online.shahganj
 
       - name: Inject Google Services JSON for Customer App
         run: |
