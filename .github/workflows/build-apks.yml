@@ -33,6 +33,11 @@ jobs:
           cd apps/customer && flutter create . --platforms=android --org=online.shahganj
           cd ../merchant && flutter create . --platforms=android --org=online.shahganj
 
+      - name: Patch Root build.gradle for Custom Properties
+        run: |
+          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}\n\$(cat apps/customer/android/build.gradle)" > apps/customer/android/build.gradle
+          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}\n\$(cat apps/merchant/android/build.gradle)" > apps/merchant/android/build.gradle
+
       - name: Inject Google Services JSON for Customer App
         run: |
           mkdir -p apps/customer/android/app
