@@ -7,3 +7,4 @@ export 'src/rider_model.dart';
 export 'src/order_model.dart';
 export 'src/booking_model.dart';
 export 'src/ride_model.dart';
+export 'src/ad_model.dart';
