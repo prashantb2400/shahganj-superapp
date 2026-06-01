@@ -47,6 +47,10 @@ jobs:
           sed -i 's/flutter.minSdkVersion/23/g' apps/merchant/android/app/build.gradle
           sed -i 's/flutter.targetSdkVersion/34/g' apps/merchant/android/app/build.gradle
 
+          # Upgrade Kotlin version in settings.gradle to ensure compatibility with Firebase dependencies
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/g' apps/customer/android/settings.gradle
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/g' apps/merchant/android/settings.gradle
+
       - name: Inject Google Services JSON for Customer App
         run: |
           mkdir -p apps/customer/android/app
