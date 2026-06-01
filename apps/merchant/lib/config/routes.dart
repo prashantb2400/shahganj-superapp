@@ -34,6 +34,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/rider/home',
         builder: (context, state) => const RiderHomeScreen(),
       ),
+      GoRoute(
+        path: '/rider/earnings',
+        builder: (context, state) => const RiderEarningsScreen(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
@@ -104,6 +108,8 @@ import 'package:core_models/core_models.dart';
 import 'package:firebase_sdk/firebase_sdk.dart';
 import '../features/rider/rider_dispatch_overlay.dart';
 import '../features/rider/rider_delivery_map.dart';
+import '../features/rider/rider_location_service.dart';
+import '../features/rider/rider_earnings_screen.dart';
 
 class RiderHomeScreen extends ConsumerStatefulWidget {
   const RiderHomeScreen({Key? key}) : super(key: key);
@@ -115,6 +121,32 @@ class RiderHomeScreen extends ConsumerStatefulWidget {
 class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
   final TextEditingController _otpController = TextEditingController();
   bool _isVerifyingOtp = false;
+  bool _isLocationSyncing = false;
+
+  Future<void> _toggleLocationSync(String riderId) async {
+    try {
+      if (_isLocationSyncing) {
+        await RiderLocationService().stopSync(riderId);
+        setState(() => _isLocationSyncing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('🛰️ Location Sync Stopped. Offline.')),
+        );
+      } else {
+        await RiderLocationService().startSync(riderId);
+        setState(() => _isLocationSyncing = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Color(0xFF10B981),
+            content: Text('🛰️ Location Sync Started. Live Kalman GPS active!'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(backgroundColor: const Color(0xFFEF4444), content: Text('Error starting sync: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +190,21 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
           ],
         ),
         actions: [
+          // Live Kalman GPS Status Toggle (Rule 11 & 27)
+          IconButton(
+            icon: Icon(
+              _isLocationSyncing ? Icons.gps_fixed : Icons.gps_off,
+              color: _isLocationSyncing ? const Color(0xFF10B981) : const Color(0xFF64748B),
+            ),
+            onPressed: () => _toggleLocationSync(user.uid),
+            tooltip: 'Live Kalman GPS Sync',
+          ),
+          // Wallet/Earnings (Phase 5)
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
+            onPressed: () => GoRouter.of(context).push('/rider/earnings'),
+            tooltip: 'Earnings & Metrics',
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
