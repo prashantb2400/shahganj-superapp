@@ -99,28 +99,310 @@ class MerchantDashboard extends ConsumerWidget {
   }
 }
 
-class RiderHomeScreen extends ConsumerWidget {
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:core_models/core_models.dart';
+import 'package:firebase_sdk/firebase_sdk.dart';
+import '../features/rider/rider_dispatch_overlay.dart';
+import '../features/rider/rider_delivery_map.dart';
+
+class RiderHomeScreen extends ConsumerStatefulWidget {
   const RiderHomeScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RiderHomeScreen> createState() => _RiderHomeScreenState();
+}
+
+class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
+  final TextEditingController _otpController = TextEditingController();
+  bool _isVerifyingOtp = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = ref.watch(authNotifierProvider);
     final rider = ref.watch(activeRiderProvider);
 
+    if (user == null || rider == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Stream deliveries active queue for this rider
+    final deliveriesStream = ref.watch(riderDeliveriesStreamProvider(user.uid));
+
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFF0F172A), // Rider Dark mode primary background
       appBar: AppBar(
-        title: Text(rider?.name ?? 'Rider Home'),
+        backgroundColor: const Color(0xFF1E293B),
+        elevation: 0,
+        title: Row(
+          children: [
+            const Icon(Icons.two_wheeler, color: Color(0xFF10B981)),
+            const SizedBox(width: 12.0),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  rider.name,
+                  style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+                Text(
+                  'E-Rickshaw Active • ${rider.phone}',
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.0),
+                )
+              ],
+            )
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
           )
         ],
       ),
-      body: const Center(
-        child: Text('Welcome Rider! Active Deliveries Screen.'),
+      body: deliveriesStream.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF10B981))),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+        data: (deliveries) {
+          if (deliveries.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.two_wheeler, size: 80.0, color: Colors.grey.withOpacity(0.3)),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'No Active Deliveries',
+                    style: GoogleFonts.spaceGrotesk(
+                      color: Colors.white,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4.0),
+                  const Text(
+                    'Waiting for incoming captive dispatches...',
+                    style: TextStyle(color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Fetch the first active order
+          final order = deliveries.first;
+
+          // [CRITICAL OVERLAY]: If order is assigned (confirmed state), show dispatch accept overlay!
+          if (order.status == 'confirmed') {
+            return RiderDispatchOverlay(
+              order: order,
+              riderId: user.uid,
+              onDismiss: () {
+                // Instantly re-stream updates
+              },
+            );
+          }
+
+          // Active journey flow (preparing, ready, picked_up)
+          final bool isPickedUp = order.status == 'picked_up';
+
+          return Column(
+            children: [
+              // 1. Live openstreetmap routing panel
+              Expanded(
+                flex: 3,
+                child: RiderDeliveryMap(
+                  riderLat: rider.latitude ?? 26.0125,
+                  riderLng: rider.longitude ?? 82.6890,
+                  destLat: order.deliveryAddress.latitude,
+                  destLng: order.deliveryAddress.longitude,
+                  destinationAddress: order.deliveryAddress.formattedAddress,
+                ),
+              ),
+
+              // 2. Active Handoff actions card
+              Card(
+                margin: const EdgeInsets.all(16.0),
+                color: const Color(0xFF1E293B),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'ORDER #${order.id.substring(0, 8).toUpperCase()}',
+                            style: GoogleFonts.spaceGrotesk(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.0,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E3A8A),
+                              borderRadius: BorderRadius.circular(6.0),
+                            ),
+                            child: Text(
+                              order.status.toUpperCase(),
+                              style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 10.0, fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 12.0),
+                      Text(
+                        'Customer Address: ${order.deliveryAddress.formattedAddress}',
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.0),
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        'Total Payable: ₹${order.totals.total} (UPI Quick Pay)',
+                        style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13.0),
+                      ),
+                      const SizedBox(height: 20.0),
+
+                      // Action button state machine
+                      if (!isPickedUp) ...[
+                        ElevatedButton.icon(
+                          onPressed: () => _updateOrderStatus(order.id, 'picked_up'),
+                          icon: const Icon(Icons.local_shipping, color: Colors.white),
+                          label: Text(
+                            'MARK AS PICKED UP',
+                            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF38BDF8),
+                            minimumSize: const Size(double.infinity, 50.0),
+                          ),
+                        ),
+                      ] else ...[
+                        ElevatedButton.icon(
+                          onPressed: () => _showOtpVerificationDialog(context, order),
+                          icon: const Icon(Icons.verified, color: Colors.white),
+                          label: Text(
+                            'VERIFY DELIVERY OTP',
+                            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            minimumSize: const Size(double.infinity, 50.0),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  /// Simple status updates for pickup handoffs
+  Future<void> _updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      await ref.read(orderRepositoryProvider).updateOrderStatus(orderId, newStatus, notes: 'Rider picked up order from store.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order status updated successfully!')),
+      );
+    } catch (e) {
+      print("❌ Update status error: $e");
+    }
+  }
+
+  /// Displays the delivery secure OTP handoff dialogue card
+  void _showOtpVerificationDialog(BuildContext context, OrderModel order) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+              title: Text(
+                'Customer Delivery OTP',
+                style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Input the 4-digit secure OTP code shown on the customer mobile screen to verify final handoff.',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.0),
+                  ),
+                  const SizedBox(height: 20.0),
+                  TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    style: const TextStyle(color: Colors.white, fontSize: 24.0, letterSpacing: 8.0, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                      hintText: '0000',
+                      hintStyle: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('CANCEL', style: TextStyle(color: Color(0xFFEF4444))),
+                ),
+                ElevatedButton(
+                  onPressed: _isVerifyingOtp ? null : () async {
+                    setDialogState(() => _isVerifyingOtp = true);
+                    final isOk = await ref.read(orderRepositoryProvider).verifyDeliveryOtp(order.id, _otpController.text);
+                    setDialogState(() => _isVerifyingOtp = false);
+                    
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      if (isOk) {
+                        // Success handoff, free up rider
+                        await FirebaseFirestore.instance.collection('riders').doc(order.riderId).update({
+                          'status': 'available',
+                        });
+                        _otpController.clear();
+                        ScaffoldMessenger.of(ref.context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Color(0xFF10B981),
+                            content: Text('🎉 OTP Verified! Delivery marked success. Safe drive!'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(ref.context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Color(0xFFEF4444),
+                            content: Text('❌ Invalid Delivery OTP! Handoff denied.'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+                  child: _isVerifyingOtp 
+                      ? const SizedBox(width: 20.0, height: 20.0, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0))
+                      : const Text('VERIFY', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

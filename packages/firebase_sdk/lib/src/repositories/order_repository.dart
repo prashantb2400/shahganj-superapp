@@ -45,6 +45,20 @@ class OrderRepository {
     });
   }
 
+  /// Verifies the customer's 4-digit Delivery OTP and marks order delivered on success
+  Future<bool> verifyDeliveryOtp(String orderId, String inputOtp) async {
+    final order = await getOrderById(orderId);
+    if (order == null) return false;
+    
+    // Validate plain text OTP for mock verification, fallback to true if OTP is missing/empty
+    final bool isValid = order.otp == null || order.otp!.isEmpty || order.otp == inputOtp;
+    if (isValid) {
+      await updateOrderStatus(orderId, 'delivered', notes: 'Verified via Customer OTP code: $inputOtp');
+      return true;
+    }
+    return false;
+  }
+
   /// [CRITICAL REAL-TIME STREAM]: Stream active orders for a customer (using onSnapshot)
   Stream<List<OrderModel>> streamCustomerOrders(String customerId) {
     return _orders
