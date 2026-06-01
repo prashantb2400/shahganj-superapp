@@ -14,16 +14,6 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Inject Google Services JSON for Customer App
-        run: |
-          mkdir -p apps/customer/android/app
-          echo '${{ secrets.CUSTOMER_GOOGLE_SERVICES_JSON }}' > apps/customer/android/app/google-services.json
-
-      - name: Inject Google Services JSON for Merchant App
-        run: |
-          mkdir -p apps/merchant/android/app
-          echo '${{ secrets.MERCHANT_GOOGLE_SERVICES_JSON }}' > apps/merchant/android/app/google-services.json
-
       - name: Setup Java JRE/JDK (Android Build)
         uses: actions/setup-java@v3
         with:
@@ -36,6 +26,22 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
+
+      - name: Generate Android Integration Templates
+        run: |
+          rm -rf apps/customer/android apps/merchant/android
+          cd apps/customer && flutter create . --platforms=android --org=online.shahganj
+          cd ../merchant && flutter create . --platforms=android --org=online.shahganj
+
+      - name: Inject Google Services JSON for Customer App
+        run: |
+          mkdir -p apps/customer/android/app
+          echo '${{ secrets.CUSTOMER_GOOGLE_SERVICES_JSON }}' > apps/customer/android/app/google-services.json
+
+      - name: Inject Google Services JSON for Merchant App
+        run: |
+          mkdir -p apps/merchant/android/app
+          echo '${{ secrets.MERCHANT_GOOGLE_SERVICES_JSON }}' > apps/merchant/android/app/google-services.json
 
       - name: Install Melos Global Package
         run: dart pub global activate melos 6.0.0
