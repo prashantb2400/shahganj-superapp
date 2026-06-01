@@ -35,8 +35,13 @@ jobs:
 
       - name: Patch Root build.gradle for Custom Properties
         run: |
-          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}\n\$(cat apps/customer/android/build.gradle)" > apps/customer/android/build.gradle
-          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}\n\$(cat apps/merchant/android/build.gradle)" > apps/merchant/android/build.gradle
+          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}" > tmp_customer.gradle
+          cat apps/customer/android/build.gradle >> tmp_customer.gradle
+          mv tmp_customer.gradle apps/customer/android/build.gradle
+
+          echo -e "ext {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 21\n}" > tmp_merchant.gradle
+          cat apps/merchant/android/build.gradle >> tmp_merchant.gradle
+          mv tmp_merchant.gradle apps/merchant/android/build.gradle
 
       - name: Inject Google Services JSON for Customer App
         run: |
