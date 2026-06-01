@@ -39,13 +39,13 @@ jobs:
           echo -e "\next {\n    compileSdkVersion = 34\n    targetSdkVersion = 34\n    minSdkVersion = 23\n}" >> apps/merchant/android/build.gradle
 
           # Replace dynamic flutter properties with hardcoded integer values to bypass null evaluation exceptions
-          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' apps/customer/android/app/build.gradle
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' apps/customer/android/app/build.gradle
-          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' apps/customer/android/app/build.gradle
+          sed -i 's/flutter.compileSdkVersion/34/g' apps/customer/android/app/build.gradle
+          sed -i 's/flutter.minSdkVersion/23/g' apps/customer/android/app/build.gradle
+          sed -i 's/flutter.targetSdkVersion/34/g' apps/customer/android/app/build.gradle
 
-          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' apps/merchant/android/app/build.gradle
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' apps/merchant/android/app/build.gradle
-          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' apps/merchant/android/app/build.gradle
+          sed -i 's/flutter.compileSdkVersion/34/g' apps/merchant/android/app/build.gradle
+          sed -i 's/flutter.minSdkVersion/23/g' apps/merchant/android/app/build.gradle
+          sed -i 's/flutter.targetSdkVersion/34/g' apps/merchant/android/app/build.gradle
 
       - name: Inject Google Services JSON for Customer App
         run: |
