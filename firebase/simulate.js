@@ -10,39 +10,57 @@ async function delay(ms) {
 }
 
 async function runSimulation() {
-  console.log("\n[Step 1/4] 🔑 Authentication Mock Gateways Active");
+  console.log("\n[Step 1/6] 🔑 Authentication Mock Gateways Active");
+  await delay(1000);
+  console.log("   - Connected as Rider: rider_prashant_001 (Ramesh Kumar)");
+  console.log("   - Authenticated role matches: 'rider' (Phone OTP Verified)");
+
+  console.log("\n[Step 2/6] 🚨 Incoming Captive Dispatch Alarm Triggered");
   await delay(1200);
-  console.log("   - Connected as Merchant: prashantb2400 (Alok Gupta)");
-  console.log("   - Authenticated role matches: 'merchant' (Google Sign-In Verified)");
-
-  console.log("\n[Step 2/4] 📝 Simulating 6-Step Onboarding wizard Input");
-  await delay(1500);
-  console.log("   - Form details captured successfully:");
-  console.log("     * Owner Name: Alok Gupta");
-  console.log("     * Business Name: Gupta Restaurant");
-  console.log("     * Category: RESTAURANT");
-  console.log("     * Location: Station Road, Shahganj, UP");
-  console.log("     * License Uploaded: Aadhar + Shop Act Cert [WebP compressed]");
-  console.log("     * Parameters: Min Order: ₹100, Radius: 5.0 KM, Fee: ₹20");
-
-  console.log("\n[Step 3/4] ⏳ Submitting to Vetting Queue (Firestore: status = 'pending')");
-  await delay(1800);
-  console.log("   - Document created: /merchants/merchant_simulation_001");
-  console.log("   - User redirected to /pending");
-  console.log("   - Real-time snapshots listener is actively monitoring Firestore state...");
-
-  console.log("\n[Step 4/4] 👨‍💼 Simulating Admin Vetting Approval Trigger");
-  for (let i = 5; i > 0; i--) {
-    console.log(`   - Vetting check completing in ${i}s...`);
+  console.log("   - Plays high-priority siren audio alert in background! 🔊");
+  console.log("   - Screen lock active: Wakelock Plus keeps panel bright. 💡");
+  
+  for (let s = 3; s > 0; s--) {
+    console.log(`   - Dispatch alert countdown ticking: ${s * 10}s remaining...`);
     await delay(1000);
   }
+  console.log("   - EVENT: Rider clicked 'ACCEPT DISPATCH' button!");
 
-  console.log("\n🔥 EVENT TRIGGERED: Firestore document updated: { 'status': 'approved' }");
-  await delay(800);
-  console.log("   - Real-time snap listener: Detected status change 'pending' -> 'approved'!");
-  console.log("   - Navigation Gateway: Executing GoRouter push('/dashboard')");
+  console.log("\n[Step 3/6] 🗺️ Live Route Navigation Map Initialized");
+  await delay(1500);
+  console.log("   - Loaded flutter_map OpenStreetMap tile layers.");
+  console.log("   - Polyline calculation active: Rider Location -> Merchant -> Destination.");
+  console.log("   - Midpoint camera centered at coordinates (26.0125, 82.6890).");
+
+  console.log("\n[Step 4/6] 📦 Merchant Pickup Verification");
+  await delay(1500);
+  console.log("   - Rider arrived at Shahganj Store.");
+  console.log("   - Rider clicked: 'MARK AS PICKED UP'.");
+  console.log("   - Firestore: status updated to 'picked_up'.");
+
+  console.log("\n[Step 5/6] 🔐 Secure Delivery OTP Handoff Prompted");
+  await delay(1500);
+  console.log("   - Rider arrived at Customer address.");
+  console.log("   - Prompting: Input 4-digit Customer verification OTP...");
+  
+  console.log("\n[Attempt 1]: Rider inputs incorrect OTP '1111'");
+  await delay(1000);
+  console.log("   - Database lookup matches order.otp = '4829'");
+  console.log("   - RESULT: ❌ Invalid Delivery OTP! Handoff denied. Order status locked.");
+
+  console.log("\n[Attempt 2]: Rider inputs correct OTP '4829'");
+  await delay(1000);
+  console.log("   - Database lookup matches order.otp = '4829'");
+  console.log("   - Firestore: status updated to 'delivered'!");
+  console.log("   - Timeline: 'Verified via Customer OTP code: 4829'.");
+
+  console.log("\n[Step 6/6] 🏁 Route Concluded & Dispatch Freed");
+  await delay(1000);
+  console.log("   - Rider status reset to 'available'.");
+  console.log("   - Wakelock screen lock released.");
+  
   console.log("\n==================================================================");
-  console.log("🎉 SUCCESS: Merchant Dashboard is now active and unlocked! ✅");
+  console.log("🎉 SUCCESS: Delivery cycle completed cleanly with zero leakages! ✅");
   console.log("==================================================================");
 }
 
