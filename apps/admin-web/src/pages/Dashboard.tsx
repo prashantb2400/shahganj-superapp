@@ -26,10 +26,10 @@ const chartData = [
   { day: 'Sun', revenue: 14800 },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ vettedCount = 84 }: { vettedCount?: number }) {
   const stats = [
     { title: 'Total Active Users', value: '1,420', change: '+12.4%', icon: Users, color: 'text-blue-400' },
-    { title: 'Vetted Merchants', value: '84', change: '+8.2%', icon: ShoppingBag, color: 'text-violet-400' },
+    { title: 'Vetted Merchants', value: `${vettedCount}`, change: '+8.2%', icon: ShoppingBag, color: 'text-violet-400' },
     { title: 'Ongoing Ride Journeys', value: '38', change: '+22.5%', icon: Activity, color: 'text-emerald-400' },
     { title: 'Today\'s Platform Fees', value: '₹4,820', change: '+15.1%', icon: IndianRupee, color: 'text-purple-400' },
   ];
