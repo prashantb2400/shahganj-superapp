@@ -22,8 +22,6 @@ class RiderDeliveryMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     final LatLng riderLocation = LatLng(riderLat, riderLng);
     final LatLng destLocation = LatLng(destLat, destLng);
 

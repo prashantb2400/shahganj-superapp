@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 // apps/merchant/lib/core/services/sound_service.dart
 import 'package:audioplayers/audioplayers.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';

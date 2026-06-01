@@ -91,7 +91,6 @@ class MerchantDashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final merchant = ref.watch(activeMerchantProvider);
 
     return Scaffold(
@@ -150,7 +149,6 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final user = ref.watch(authNotifierProvider);
     final rider = ref.watch(activeRiderProvider);
 
@@ -318,7 +316,8 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                       const SizedBox(height: 20.0),
 
                       // Action button state machine
-                      if (!isPickedUp) ...[\n                        ElevatedButton.icon(
+                      if (!isPickedUp) ...[
+                        ElevatedButton.icon(
                           onPressed: () => _updateOrderStatus(order.id, 'picked_up'),
                           icon: const Icon(Icons.local_shipping, color: Colors.white),
                           label: Text(
@@ -330,7 +329,8 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                             minimumSize: const Size(double.infinity, 50.0),
                           ),
                         ),
-                      ] else ...[\n                        ElevatedButton.icon(
+                      ] else ...[
+                        ElevatedButton.icon(
                           onPressed: () => _showOtpVerificationDialog(context, order),
                           icon: const Icon(Icons.verified, color: Colors.white),
                           label: Text(
@@ -473,8 +473,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

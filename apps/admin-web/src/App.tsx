@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FirebaseError } from 'firebase/app';
 import { 
   ShieldAlert, 
   LayoutDashboard, 
@@ -21,6 +22,9 @@ interface VettingItem {
   phone: string;
   docs: string;
 }
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof FirebaseError || error instanceof Error ? error.message : 'Unknown error';
 
 export default function App() {
   // Auth state using Firebase User object
@@ -73,8 +77,8 @@ export default function App() {
         await signOut(auth);
         setAuthError(`Access Denied! ${loggedUser.email} is not a whitelisted operations account.`);
       }
-    } catch (err: any) {
-      setAuthError(`Sign-in cancelled or failed: ${err.message}`);
+    } catch (err: unknown) {
+      setAuthError(`Sign-in cancelled or failed: ${getErrorMessage(err)}`);
     }
   };
 
@@ -83,8 +87,8 @@ export default function App() {
       await signOut(auth);
       setCurrentUser(null);
       showToast('🔌 Operator console securely locked.');
-    } catch (err: any) {
-      showToast(`Error signing out: ${err.message}`, 'info');
+    } catch (err: unknown) {
+      showToast(`Error signing out: ${getErrorMessage(err)}`, 'info');
     }
   };
 
