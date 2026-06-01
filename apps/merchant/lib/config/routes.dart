@@ -2,9 +2,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:core_models/core_models.dart';
+import 'package:firebase_sdk/firebase_sdk.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/onboarding/onboarding_wizard.dart';
 import '../features/dashboard/pending_screen.dart';
+import '../features/rider/rider_dispatch_overlay.dart';
+import '../features/rider/rider_delivery_map.dart';
+import '../features/rider/rider_location_service.dart';
+import '../features/rider/rider_earnings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -102,14 +110,6 @@ class MerchantDashboard extends ConsumerWidget {
     );
   }
 }
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:core_models/core_models.dart';
-import 'package:firebase_sdk/firebase_sdk.dart';
-import '../features/rider/rider_dispatch_overlay.dart';
-import '../features/rider/rider_delivery_map.dart';
-import '../features/rider/rider_location_service.dart';
-import '../features/rider/rider_earnings_screen.dart';
 
 class RiderHomeScreen extends ConsumerStatefulWidget {
   const RiderHomeScreen({Key? key}) : super(key: key);
@@ -318,8 +318,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                       const SizedBox(height: 20.0),
 
                       // Action button state machine
-                      if (!isPickedUp) ...[
-                        ElevatedButton.icon(
+                      if (!isPickedUp) ...[\n                        ElevatedButton.icon(
                           onPressed: () => _updateOrderStatus(order.id, 'picked_up'),
                           icon: const Icon(Icons.local_shipping, color: Colors.white),
                           label: Text(
@@ -331,8 +330,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                             minimumSize: const Size(double.infinity, 50.0),
                           ),
                         ),
-                      ] else ...[
-                        ElevatedButton.icon(
+                      ] else ...[\n                        ElevatedButton.icon(
                           onPressed: () => _showOtpVerificationDialog(context, order),
                           icon: const Icon(Icons.verified, color: Colors.white),
                           label: Text(
