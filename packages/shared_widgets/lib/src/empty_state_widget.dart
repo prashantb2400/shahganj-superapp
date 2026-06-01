@@ -22,8 +22,9 @@ class EmptyStateWidget extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Center(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-      child: Column(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -84,6 +85,7 @@ class EmptyStateWidget extends StatelessWidget {
           ]
         ],
       ),
+    ),
     );
   }
 }

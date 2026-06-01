@@ -1,7 +1,7 @@
 // apps/merchant/lib/features/rider/rider_delivery_map.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong2.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RiderDeliveryMap extends StatelessWidget {
