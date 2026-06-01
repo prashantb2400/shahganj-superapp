@@ -38,3 +38,6 @@ dependencies:
   
   # UI
   google_fonts: ^6.2.1
+
+dependency_overrides:
+  geolocator_android: 4.6.1
