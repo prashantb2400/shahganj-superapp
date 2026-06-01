@@ -106,7 +106,7 @@ exports.assignRiderToOrder = onDocumentUpdated("orders/{orderId}", async (event)
             
             // Query closest online available riders linked to this merchant (Proximity Section 10 Phase 3)
             const ridersSnapshot = await db.collection("riders")
-                .where("merchantId", isEqualTo: merchantId)
+                .where("merchantId", "==", merchantId)
                 .where("isOnline", "==", true)
                 .where("status", "==", "available")
                 .limit(5)

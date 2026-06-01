@@ -14,6 +14,16 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
+      - name: Inject Google Services JSON for Customer App
+        run: |
+          mkdir -p apps/customer/android/app
+          echo '${{ secrets.CUSTOMER_GOOGLE_SERVICES_JSON }}' > apps/customer/android/app/google-services.json
+
+      - name: Inject Google Services JSON for Merchant App
+        run: |
+          mkdir -p apps/merchant/android/app
+          echo '${{ secrets.MERCHANT_GOOGLE_SERVICES_JSON }}' > apps/merchant/android/app/google-services.json
+
       - name: Setup Java JRE/JDK (Android Build)
         uses: actions/setup-java@v3
         with:
