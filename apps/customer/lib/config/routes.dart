@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/home/home_screen.dart';
 import '../features/rides/ride_booking.dart';
@@ -224,6 +223,17 @@ class LoginScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class RideBookingScreen extends StatelessWidget {
+  const RideBookingScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text('Ride Booking Screen')),
     );
   }
 }
