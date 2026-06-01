@@ -32,6 +32,25 @@ async function runSimulation() {
   console.log("   - Polyline calculation active: Rider Location -> Merchant -> Destination.");
   console.log("   - Midpoint camera centered at coordinates (26.0125, 82.6890).");
 
+  console.log("\n[Step 3b/6] 🛰️ Continuous 3s Geolocator Stream & Kalman GPS Smoothing (Rule 11 & 27)");
+  console.log("   - Active background geolocator thread running...");
+  let q = 0.00001; // Process Noise
+  let r = 0.0001;  // Measurement Noise
+  let x = 26.0125; // Initial Lat Estimate
+  let p = 1.0;     // Covariance
+  let rawCoords = [26.0129, 26.0138, 26.0118];
+  
+  for (let i = 0; i < rawCoords.length; i++) {
+    let z = rawCoords[i];
+    p = p + q;
+    let k = p / (p + r);
+    x = x + k * (z - x);
+    p = (1.0 - k) * p;
+    console.log(`     👉 Interval ${i+1} (3s): Raw Coord Input: ${z.toFixed(5)} -> Kalman Smoothed Output: ${x.toFixed(6)}`);
+    await delay(800);
+  }
+  console.log("   - Firestore: Successfully saved smoothed coordinates payload to '/riders/rider_prashant_001'.");
+
   console.log("\n[Step 4/6] 📦 Merchant Pickup Verification");
   await delay(1500);
   console.log("   - Rider arrived at Shahganj Store.");
