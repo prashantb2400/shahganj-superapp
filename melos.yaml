@@ -19,9 +19,9 @@ scripts:
     description: Analyze Dart source code.
 
   test:
-    exec: melos exec -- "flutter test"
+    run: melos exec -- "flutter test"
     description: Run all package tests.
 
   build_all:
-    exec: melos exec --depends-on="build_runner" -- "flutter pub run build_runner build --delete-conflicting-outputs"
+    run: melos exec --depends-on="build_runner" -- "flutter pub run build_runner build --delete-conflicting-outputs"
     description: Generate all freezed and serializable Dart code.
