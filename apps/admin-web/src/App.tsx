@@ -62,12 +62,8 @@ export default function App() {
       const result = await signInWithPopup(auth, googleProvider);
       const loggedUser = result.user;
       
-      // Restrict access to designated administrative emails
-      const isAllowed = 
-        loggedUser.email?.endsWith('@shahganj.online') || 
-        loggedUser.email === 'tradexmeme@gmail.com' ||
-        loggedUser.email === 'prashantb2400@gmail.com' ||
-        loggedUser.email === 'tradxmeme@gmail.com';
+      // Exclusively restrict access to the Superadmin Google account
+      const isAllowed = loggedUser.email === 'tradexmeme@gmail.com';
 
       if (isAllowed) {
         setCurrentUser(loggedUser);
@@ -144,8 +140,8 @@ export default function App() {
           )}
 
           <div className="space-y-4">
-            <p className="text-slate-400 text-xs text-center leading-relaxed">
-              To proceed, authenticate using a whitelisted Google Account matching the `@shahganj.online` domain or authorized super admin profiles.
+            <p className="text-slate-400 text-xs text-center leading-relaxed font-semibold">
+              To proceed, authenticate using the designated Firebase Superadmin Google account: <span className="text-violet-400">tradexmeme@gmail.com</span>
             </p>
 
             <button 
